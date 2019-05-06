@@ -1,4 +1,5 @@
 {
+	"testNum": -1,
 	"sites": ["https://www.facebook.com/", "https://www.apple.com/", "https://www.netflix.com/", "https://www.google.com/"],
 	"timeout": 5000,
 	"width": 50

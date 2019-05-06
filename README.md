@@ -8,6 +8,7 @@ Edit config.json to your liking, make sure text files containing proxies are in 
 
 ## config.json
 
+* testNum - Number of proxies from each file to test (any number less than 1 will test all proxies)
 * sites - Websites to test each proxy on
 * timeout - Number of ms to wait before aborting a request
 * width - Number of characters to center the program output around

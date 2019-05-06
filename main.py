@@ -7,6 +7,7 @@ import glob
 import os
 import math
 import sys
+import random
 
 if sys.version_info[0] < 3:
 	import timeit
@@ -29,9 +30,15 @@ config = settings('config.json')
 sites = config['sites']
 timeout = config['timeout']
 width = config['width']
+test_num = config['testNum']
 site_names = [site.split('.')[-2].replace('https://', '').replace('http://', '').title() for site in sites]
+for site_name in site_names:
+	try:
+		os.remove('{}.txt'.format(site_name))
+	except FileNotFoundError:
+		pass
 files = [item for item in glob.glob('./*.txt') if all(site not in item for site in site_names)]
-proxies = []
+proxies = {}
 
 def center(text, spacer=' ', length=width, clear=False):
 	if clear:
@@ -69,17 +76,31 @@ def test_proxy(proxy, site):
 	except eventlet.timeout.Timeout:
 		center('{} timed out.'.format(proxy))
 		return False
+
 center(' ', clear=True)
 center('Proxy Tester by @DefNotAvg')
 center('-', '-', width)
 if files:
 	for file in files:
+		file_name = file.split('.')[-2][1:]
 		with open(file, 'r') as myfile:
-			proxies += myfile.read().splitlines()
+			if test_num < 1:
+				proxies[file_name] = myfile.read().splitlines()
+			else:
+				proxies[file_name] = []
+				total = myfile.read().splitlines()
+				if test_num > len(total):
+					center('There are not enough proxies in {}.txt.'.format(file_name))
+					quit()
+				for i in range(0, test_num):
+					proxy = random.choice(total)
+					while(any(item == proxy for item in proxies[file_name])):
+						proxy = random.choice(total)
+					proxies[file_name].append(proxy)
 else:
 	center('No text files found in current folder.')
 	quit()
-if proxies:
+if any(proxies[file_name] for file_name in list(proxies.keys())):
 	for i in range(0, len(sites)):
 		site = sites[i]
 		site_name = site_names[i]
@@ -87,17 +108,24 @@ if proxies:
 			center('-', '-')
 		center(site_name)
 		center('-', '-', width)
-		passed = []
-		failed = []
-		for proxy in proxies:
-			if test_proxy(proxy, site):
-				passed.append(proxy)
-			else:
-				failed.append(proxy)
-		with open('{}.txt'.format(site_name), 'w') as myfile:
-			myfile.write('Passed\n------\n{}\n\nFailed\n------\n{}'.format('\n'.join(passed), '\n'.join(failed)))
-		print('')
-		center('{}/{} proxies are valid.'.format(str(len(passed)), str(len(proxies))))
+		for i in range(0, len(list(proxies.keys()))):
+			file_name = list(proxies.keys())[i]
+			passed = []
+			failed = []
+			for proxy in proxies[file_name]:
+				if test_proxy(proxy, site):
+					passed.append(proxy)
+				else:
+					failed.append(proxy)
+			with open('{}.txt'.format(site_name), 'a') as myfile:
+				if i != len(list(proxies.keys())) - 1:
+					myfile.write('{}.txt\n{}\n\nPassed\n------\n{}\n\nFailed\n------\n{}\n\n\n'.format(file_name, len('{}.txt'.format(file_name)) * '-', '\n'.join(passed), '\n'.join(failed)))
+				else:
+					myfile.write('{}.txt\n{}\n\nPassed\n------\n{}\n\nFailed\n------\n{}'.format(file_name, len('{}.txt'.format(file_name)) * '-', '\n'.join(passed), '\n'.join(failed)))
+			print('')
+			center('{}.txt: {}/{} proxies are valid.'.format(file_name, str(len(passed)), str(len(proxies[file_name]))))
+			if i != len(list(proxies.keys())) - 1:
+				print('')
 else:
 	center('No proxies found in text files in current folder.')
 	quit()

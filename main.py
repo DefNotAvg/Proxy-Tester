@@ -16,17 +16,17 @@ else:
 	import time
 	timer = time.process_time
 
-def settings(config):
+def load_from_json(file):
 	try:
-		with open(config, 'r') as myfile:
+		with open(file, 'r') as myfile:
 			return json.load(myfile)
 	except IOError:
-		with open(config, 'w') as myfile:
+		with open(file, 'w') as myfile:
 			json.dump({}, myfile)
 		return {}
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36'}
-config = settings('config.json')
+config = load_from_json('config.json')
 sites = config['sites']
 timeout = config['timeout']
 width = config['width']
